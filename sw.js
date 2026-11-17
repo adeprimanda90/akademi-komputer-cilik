@@ -1,4 +1,4 @@
-const CACHE_NAME = 'akademi-cilik-v2';
+const CACHE_NAME = 'akademi-cilik-v3-profiles';
 const ASSETS = [
   '/',
   '/index.html',
@@ -24,6 +24,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request).then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      }).catch(() => caches.match('/index.html'));
+    })
   );
 });
