@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Akademi Komputer Cilik</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle'%3E🚀%3C/text%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#2563eb" />
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #3b82f6;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --text-light: #f8fafc;
+    }
+    * { box-sizing: border-box; user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body {
+      margin: 0; padding: 0; background: radial-gradient(circle at top, #1e293b, #0f172a);
+      color: var(--text-light); overflow: hidden; height: 100vh; display: flex; flex-direction: column;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.92); padding: 12px 24px; display: flex; justify-content: space-between;
+      align-items: center; border-bottom: 2px solid #334155; z-index: 10;
+    }
+    .brand { font-size: 1.35rem; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+    .stats { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .pill {
+      background: #1e293b; padding: 8px 16px; border-radius: 999px; font-weight: 700;
+      border: 2px solid #334155; display: flex; align-items: center; gap: 6px; font-size: 1rem;
+    }
+    button.btn {
+      background: var(--primary); color: white; border: none; padding: 10px 18px;
+      border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+      transition: transform 0.12s, filter 0.2s;
+    }
+    button.btn:hover { transform: scale(1.05); filter: brightness(1.12); }
+    button.btn-amber { background: var(--accent); color: #0f172a; }
+    button.btn-green { background: var(--success); }
+    button.btn-ghost { background: #334155; }
+
+    main { flex: 1; overflow-y: auto; padding: 24px; position: relative; }
+    .hidden { display: none !important; }
+
+    /* Hero Banner */
+    .hero-banner {
+      max-width: 1300px; margin: 0 auto 24px; background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+      border-radius: 24px; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between;
+      border: 3px solid #60a5fa; box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    }
+
+    /* Stage Map Grid */
+    .stages-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px; max-width: 1300px; margin: 0 auto;
+    }
+    .stage-card {
+      background: var(--card-bg); border-radius: 20px; padding: 20px;
+      border: 3px solid #334155; transition: transform 0.2s; position: relative;
+    }
+    .stage-card.locked { opacity: 0.55; filter: grayscale(0.75); }
+    .stage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .stage-badge-tag { font-size: 0.85rem; padding: 4px 10px; border-radius: 8px; font-weight: 700; background: #0f172a; }
+    .levels-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .lvl-btn {
+      width: 52px; height: 52px; border-radius: 14px; border: 2px solid #475569;
+      background: #0f172a; color: white; font-weight: 800; font-size: 1rem;
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .lvl-btn.completed { background: #065f46; border-color: #10b981; }
+    .lvl-btn.current { background: #1d4ed8; border-color: #60a5fa; animation: pulse 1.5s infinite; }
+    .lvl-btn:disabled { cursor: not-allowed; opacity: 0.4; }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+    /* Game Arena */
+    #game-arena { max-width: 1100px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+    .instruction-banner {
+      background: #1e293b; border: 3px solid #3b82f6; border-radius: 18px;
+      padding: 14px 22px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; gap: 16px;
+    }
+    .instruction-text { font-size: 1.25rem; font-weight: 700; line-height: 1.4; }
+    #playfield {
+      flex: 1; background: #1e293b; border-radius: 24px; border: 3px solid #334155;
+      position: relative; overflow: hidden; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; min-height: 380px;
+    }
+
+    .game-target {
+      position: absolute; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 2.5rem; font-weight: 900; cursor: pointer;
+      background: radial-gradient(circle at 30% 30%, #60a5fa, #1d4ed8);
+      border: 4px solid white; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      transition: transform 0.15s;
+    }
+    .game-target:hover { transform: scale(1.12); }
+
+    .v-keyboard {
+      margin-top: 20px; background: #0f172a; padding: 14px; border-radius: 16px;
+      border: 2px solid #334155; display: flex; flex-direction: column; gap: 8px;
+    }
+    .vk-row { display: flex; justify-content: center; gap: 6px; }
+    .vk-key {
+      min-width: 44px; height: 44px; border-radius: 8px; background: #334155;
+      color: white; font-weight: 800; display: flex; align-items: center;
+      justify-content: center; padding: 0 10px; font-size: 1rem;
+    }
+    .vk-key.highlight {
+      background: #f59e0b; color: #0f172a; transform: scale(1.15);
+      box-shadow: 0 0 16px #f59e0b; border: 2px solid white;
+    }
+
+    .word-box { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; justify-content: center; }
+    .char-slot {
+      width: 64px; height: 74px; border-radius: 14px; background: #0f172a;
+      border: 3px solid #475569; font-size: 2.4rem; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .char-slot.done { background: #065f46; border-color: #10b981; color: #a7f3d0; }
+    .char-slot.active { border-color: #f59e0b; box-shadow: 0 0 15px rgba(245,158,11,0.5); }
+
+    .dnd-container { display: flex; justify-content: space-around; width: 100%; padding: 20px; gap: 20px; }
+    .dnd-col { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+    .draggable-item {
+      padding: 18px 28px; background: #2563eb; border-radius: 16px; font-size: 2rem;
+      font-weight: 800; cursor: grab; border: 3px solid white;
+    }
+    .drop-zone {
+      width: 240px; height: 80px; border: 3px dashed #94a3b8; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+      font-weight: 700; background: #0f172a;
+    }
+    .drop-zone.matched { border-style: solid; border-color: #10b981; background: #064e3b; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.82);
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-card {
+      background: #1e293b; border: 4px solid #f59e0b; border-radius: 28px;
+      padding: 36px; text-align: center; max-width: 480px; width: 90%;
+    }
+    .trophy-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px; max-width: 1100px; margin: 0 auto;
+    }
+    .trophy-card {
+      background: #1e293b; border-radius: 18px; padding: 20px; text-align: center;
+      border: 2px solid #334155;
+    }
+    .trophy-card.earned { border-color: #f59e0b; background: linear-gradient(180deg, #1e293b, #451a03); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <!-- Logo SVG Bawaan -->
+    <svg width="38" height="38" viewBox="0 0 100 100">
+      <rect width="100" height="100" rx="24" fill="#2563eb"/>
+      <text x="50" y="68" font-size="56" text-anchor="middle">🚀</text>
+    </svg>
+    <span>Akademi Komputer Cilik</span>
+  </div>
+  <div class="stats">
+    <div class="pill">⭐ <span id="star-count">0</span> / 150</div>
+    <div class="pill">🏆 <span id="badge-count">0</span> / 10</div>
+    <button class="btn btn-amber" onclick="showTrophies()">🏆 Ruang Piala</button>
+    <button class="btn btn-ghost" onclick="toggleFullscreen()">⛶ Layar Penuh</button>
+    <button class="btn btn-ghost" onclick="parentUnlockPrompt()">⚙️ Orang Tua</button>
+  </div>
+</header>
+
+<main>
+  <!-- VIEW 1: PETA 10 TAHAPAN -->
+  <div id="view-map">
+    <div class="hero-banner">
+      <div style="display:flex; align-items:center; gap:18px;">
+        <!-- Maskot Kapten Astro SVG Bawaan -->
+        <svg width="72" height="72" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="46" fill="#fef3c7" stroke="#f59e0b" stroke-width="5"/>
+          <text x="50" y="67" font-size="52" text-anchor="middle">🧑‍🚀</text>
+        </svg>
+        <div>
+          <h1 style="margin:0; font-size:1.75rem;">Peta Petualangan 10 Dunia Komputer</h1>
+          <p style="margin:6px 0 0; color:#e0e7ff; font-size:1.05rem;">Pilih level yang menyala, kumpulkan 3 bintang, dan raih semua piala tahapannya!</p>
+        </div>
+      </div>
+      <button class="btn btn-amber" style="font-size:1.05rem; padding:12px 20px;" onclick="speakNatural('Halo Kapten Cilik! Selamat datang di Akademi Komputer. Ayo pilih level pertama untuk memulai petualanganmu!')">🔊 Sapa Kapten</button>
+    </div>
+    <div class="stages-grid" id="stages-container"></div>
+  </div>
+
+  <!-- VIEW 2: ARENA PERMAINAN -->
+  <div id="view-game" class="hidden">
+    <div id="game-arena">
+      <div class="instruction-banner">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div style="font-size:2.4rem;">🧑‍🚀</div>
+          <div>
+            <div style="color:#60a5fa; font-weight:800; font-size:0.95rem;" id="lvl-header-title">TAHAP 1 - LEVEL 1.1</div>
+            <div class="instruction-text" id="lvl-instruction">Instruksi permainan...</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-shrink:0;">
+          <button class="btn btn-amber" onclick="repeatInstruction()">🔊 Ulangi Suara</button>
+          <button class="btn btn-ghost" onclick="backToMap()">🗺️ Peta</button>
+        </div>
+      </div>
+      <div id="playfield"></div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: RUANG PIALA -->
+  <div id="view-trophies" class="hidden">
+    <div style="max-width:1100px; margin:0 auto 20px; display:flex; justify-content:space-between; align-items:center;">
+      <h1 style="margin:0;">🏆 Koleksi Lencana & Piala Penghargaan</h1>
+      <button class="btn" onclick="backToMap()">⬅️ Kembali ke Peta</button>
+    </div>
+    <div class="trophy-grid" id="trophies-container"></div>
+  </div>
+</main>
+
+<!-- MODAL KEMENANGAN LEVEL -->
+<div id="win-modal" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div id="win-badge-visual" style="font-size:4.2rem;">🎉⭐⭐⭐🎉</div>
+    <h2 id="win-title" style="font-size:1.75rem; margin:10px 0;">Hebat Sekali!</h2>
+    <p id="win-desc" style="color:#cbd5e1; font-size:1.1rem; line-height:1.5;"></p>
+    <div style="display:flex; gap:12px; justify-content:center; margin-top:24px;">
+      <button class="btn btn-ghost" onclick="closeWinModal(false)">🗺️ Ke Peta</button>
+      <button class="btn btn-green" onclick="closeWinModal(true)">Lanjut Level Berikutnya ➡️</button>
+    </div>
+  </div>
+</div>
+
+<script src="curriculum.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // ==========================================
+  // 1. MESIN EFEK SUARA CERIA SINTETIS (TANPA FILE MP3)
+  // ==========================================
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
+
+  function playTone(freq, duration, type = 'sine', delay = 0) {
+    try {
+      if (!audioCtx) audioCtx = new AudioCtx();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+      gain.gain.setValueAtTime(0.18, audioCtx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + delay);
+      osc.stop(audioCtx.currentTime + delay + duration);
+    } catch (e) {}
+  }
+
+  function sfxPop() { playTone(523.25, 0.14, 'triangle', 0); playTone(783.99, 0.18, 'sine', 0.06); }
+  function sfxKey() { playTone(659.25, 0.1, 'sine', 0); }
+  function sfxWin() {
+    playTone(523.25, 0.18, 'triangle', 0);
+    playTone(659.25, 0.18, 'triangle', 0.14);
+    playTone(783.99, 0.18, 'triangle', 0.28);
+    playTone(1046.5, 0.45, 'triangle', 0.42);
+  }
+
+  // ==========================================
+  // 2. MESIN SUARA BAHASA INDONESIA NATURAL
+  // ==========================================
+  let selectedIndoVoice = null;
+  function loadNaturalIndonesianVoice() {
+    const voices = window.speechSynthesis.getVoices();
+    selectedIndoVoice =
+      voices.find(v => v.lang.includes('id') && v.name.includes('Gadis') && v.name.includes('Natural')) ||
+      voices.find(v => v.lang.includes('id') && v.name.includes('Natural')) ||
+      voices.find(v => v.lang.includes('id') && v.name.includes('Google')) ||
+      voices.find(v => v.lang.includes('id'));
+  }
+  window.speechSynthesis.onvoiceschanged = loadNaturalIndonesianVoice;
+  loadNaturalIndonesianVoice();
+
+  function speakNatural(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/–/g, ', ').replace(/\//g, ' atau ');
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    if (selectedIndoVoice) utter.voice = selectedIndoVoice;
+    utter.lang = 'id-ID';
+    utter.rate = 0.94;
+    utter.pitch = 1.06;
+    window.speechSynthesis.speak(utter);
+  }
+
+  // ==========================================
+  // 3. PENYIMPANAN PROGRES
+  // ==========================================
+  let progress = JSON.parse(localStorage.getItem('akc_progress')) || { completed: [], unlockedAll: false };
+  function saveProgress() { localStorage.setItem('akc_progress', JSON.stringify(progress)); updateHeaderStats(); }
+  function isLevelCompleted(id) { return progress.completed.includes(id); }
+  function getAllLevelsFlat() {
+    const list = [];
+    CURRICULUM_DATA.forEach(s => s.levels.forEach(l => list.push({ ...l, stageObj: s })));
+    return list;
+  }
+  function isLevelUnlocked(id) {
+    if (progress.unlockedAll) return true;
+    const flat = getAllLevelsFlat();
+    const idx = flat.findIndex(x => x.id === id);
+    if (idx <= 0) return true;
+    return isLevelCompleted(flat[idx - 1].id);
+  }
+  function updateHeaderStats() {
+    document.getElementById('star-count').textContent = progress.completed.length * 3;
+    let badges = 0;
+    CURRICULUM_DATA.forEach(s => { if (s.levels.every(l => isLevelCompleted(l.id))) badges++; });
+    document.getElementById('badge-count').textContent = badges;
+  }
+
+  // ==========================================
+  // 4. NAVIGASI PETA & RUANG PIALA
+  // ==========================================
+  let activeLevel = null;
+  let activeKeyHandler = null;
+
+  function renderMap() {
+    updateHeaderStats();
+    const container = document.getElementById('stages-container');
+    container.innerHTML = '';
+    CURRICULUM_DATA.forEach(stage => {
+      const stageUnlocked = isLevelUnlocked(stage.levels[0].id);
+      const stageCompleted = stage.levels.every(l => isLevelCompleted(l.id));
+      const card = document.createElement('div');
+      card.className = `stage-card ${stageUnlocked ? '' : 'locked'}`;
+      card.style.borderColor = stageCompleted ? '#f59e0b' : (stageUnlocked ? stage.themeColor : '#334155');
+
+      let levelsHtml = '';
+      stage.levels.forEach(lvl => {
+        const done = isLevelCompleted(lvl.id);
+        const open = isLevelUnlocked(lvl.id);
+        const cls = done ? 'completed' : (open ? 'current' : '');
+        levelsHtml += `
+          <button class="lvl-btn ${cls}" ${open ? '' : 'disabled'} onclick="startLevel('${lvl.id}')">
+            <span>${open ? lvl.id : '🔒'}</span>
+            <span style="font-size:0.7rem;">${done ? '⭐⭐⭐' : (open ? 'MAIN' : '')}</span>
+          </button>`;
+      });
+
+      card.innerHTML = `
+        <div class="stage-header">
+          <span style="font-weight:800; color:${stage.themeColor};">TAHAP ${stage.stage}</span>
+          <span class="stage-badge-tag">${stageCompleted ? '✅ ' + stage.badge : '🏅 ' + stage.badge}</span>
+        </div>
+        <h3 style="margin:4px 0; font-size:1.25rem;">${stage.title}</h3>
+        <p style="margin:0; color:#94a3b8; font-size:0.9rem;">${stage.subtitle}</p>
+        <div class="levels-row">${levelsHtml}</div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function backToMap() {
+    cleanupGameListeners();
+    window.speechSynthesis.cancel();
+    document.getElementById('view-game').classList.add('hidden');
+    document.getElementById('view-trophies').classList.add('hidden');
+    document.getElementById('view-map').classList.remove('hidden');
+    renderMap();
+  }
+
+  function showTrophies() {
+    cleanupGameListeners();
+    document.getElementById('view-map').classList.add('hidden');
+    document.getElementById('view-game').classList.add('hidden');
+    document.getElementById('view-trophies').classList.remove('hidden');
+
+    const container = document.getElementById('trophies-container');
+    container.innerHTML = '';
+    CURRICULUM_DATA.forEach(s => {
+      const earned = s.levels.every(l => isLevelCompleted(l.id));
+      const div = document.createElement('div');
+      div.className = `trophy-card ${earned ? 'earned' : ''}`;
+      div.innerHTML = `
+        <div style="margin-bottom:8px; opacity:${earned ? '1' : '0.35'};">${STAGE_BADGES_SVG[s.stage]}</div>
+        <div style="font-weight:800; font-size:1.1rem;">${s.badge}</div>
+        <div style="color:#94a3b8; font-size:0.85rem; margin-top:4px;">Tahap ${s.stage}: ${s.title}</div>
+        <div style="margin-top:10px; font-weight:700; color:${earned ? '#fbbf24' : '#64748b'};">
+          ${earned ? 'SUDAH DIRAIH!' : 'Selesaikan 5 level tahap ini'}
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+    else document.exitFullscreen().catch(() => {});
+  }
+
+  function parentUnlockPrompt() {
+    const ans = prompt("Mode Orang Tua:\nKetik 'BUKA' untuk membuka semua 50 level,\natau ketik 'RESET' untuk mengulang progres dari awal:");
+    if (!ans) return;
+    if (ans.toUpperCase() === 'BUKA') {
+      progress.unlockedAll = true; saveProgress(); renderMap();
+      alert("Semua 10 Tahap (50 Level) telah dibuka!");
+    } else if (ans.toUpperCase() === 'RESET') {
+      progress = { completed: [], unlockedAll: false }; saveProgress(); renderMap();
+      alert("Progres permainan telah diatur ulang ke awal.");
+    }
+  }
+
+  // ==========================================
+  // 5. MESIN PERMAINAN MULTI-MODE
+  // ==========================================
+  function cleanupGameListeners() {
+    if (activeKeyHandler) { window.removeEventListener('keydown', activeKeyHandler); activeKeyHandler = null; }
+  }
+  function repeatInstruction() { if (activeLevel) speakNatural(activeLevel.instruction); }
+
+  function startLevel(id) {
+    sfxPop();
+    cleanupGameListeners();
+    const flat = getAllLevelsFlat();
+    activeLevel = flat.find(l => l.id === id);
+    if (!activeLevel) return;
+
+    document.getElementById('view-map').classList.add('hidden');
+    document.getElementById('view-trophies').classList.add('hidden');
+    document.getElementById('view-game').classList.remove('hidden');
+
+    document.getElementById('lvl-header-title').textContent = `TAHAP ${activeLevel.stageObj.stage} • LEVEL ${activeLevel.id} — ${activeLevel.name.toUpperCase()}`;
+    document.getElementById('lvl-instruction').textContent = activeLevel.instruction;
+    speakNatural(activeLevel.instruction);
+
+    const pf = document.getElementById('playfield');
+    pf.innerHTML = ''; pf.style.background = '#1e293b'; pf.onmousemove = null; pf.onwheel = null;
+
+    switch (activeLevel.mode) {
+      case 'hover_flashlight':
+      case 'hover_collect': runHoverGame(pf, activeLevel); break;
+      case 'click_targets':
+      case 'click_sequence': runClickGame(pf, activeLevel); break;
+      case 'double_click': runDoubleClickGame(pf, activeLevel); break;
+      case 'right_click': runRightClickGame(pf, activeLevel); break;
+      case 'drag_drop': runDragDropGame(pf, activeLevel); break;
+      case 'scroll_wheel': runScrollGame(pf, activeLevel); break;
+      case 'type_single': runTypeSingleGame(pf, activeLevel); break;
+      case 'type_word': runTypeWordGame(pf, activeLevel); break;
+      case 'arrow_maze': runArrowMazeGame(pf, activeLevel); break;
+      case 'click_and_type': runClickAndTypeGame(pf, activeLevel); break;
+      case 'window_sim': runWindowSimGame(pf, activeLevel); break;
+    }
+  }
+
+  function completeCurrentLevel() {
+    cleanupGameListeners();
+    sfxWin();
+    if (!progress.completed.includes(activeLevel.id)) {
+      progress.completed.push(activeLevel.id);
+      saveProgress();
+    }
+    const stageDone = activeLevel.stageObj.levels.every(l => isLevelCompleted(l.id));
+    document.getElementById('win-badge-visual').innerHTML = stageDone
+      ? `${STAGE_BADGES_SVG[activeLevel.stageObj.stage]}<div style="font-size:2.2rem;">⭐⭐⭐</div>`
+      : `🎉⭐⭐⭐🎉`;
+    document.getElementById('win-title').textContent = stageDone
+      ? `Lencana ${activeLevel.stageObj.badge} Diraih!`
+      : `Level ${activeLevel.id} Selesai!`;
+    document.getElementById('win-desc').textContent = stageDone
+      ? `Selamat! Kamu telah menamatkan seluruh Tahap ${activeLevel.stageObj.stage} dan mendapatkan 3 Bintang!`
+      : `Kamu mendapatkan 3 Bintang! Ayo lanjutkan petualanganmu ke level berikutnya.`;
+    document.getElementById('win-modal').classList.remove('hidden');
+    speakNatural(stageDone ? `Selamat! Kamu berhasil meraih lencana ${activeLevel.stageObj.badge}!` : "Hebat sekali! Kamu berhasil menyelesaikan level ini!");
+  }
+
+  function closeWinModal(next) {
+    document.getElementById('win-modal').classList.add('hidden');
+    if (!next) { backToMap(); return; }
+    const flat = getAllLevelsFlat();
+    const idx = flat.findIndex(l => l.id === activeLevel.id);
+    if (idx >= 0 && idx + 1 < flat.length) startLevel(flat[idx + 1].id);
+    else backToMap();
+  }
+
+  function runHoverGame(pf, lvl) {
+    const animals = ["🦁", "🐼", "🦊", "🐨", "🐸", "🦉", "🐢", "🦄", "🐧", "🦋", "🐝", "🐙"];
+    let found = 0;
+    const total = lvl.targetCount;
+    const isFlashlight = lvl.mode === 'hover_flashlight';
+    if (isFlashlight) {
+      pf.style.background = '#020617';
+      const light = document.createElement('div');
+      light.style.cssText = 'position:absolute; width:190px; height:190px; border-radius:50%; background:radial-gradient(circle, rgba(253,224,71,0.38) 0%, transparent 70%); pointer-events:none; transform:translate(-50%,-50%);';
+      pf.appendChild(light);
+      pf.onmousemove = (e) => {
+        const rect = pf.getBoundingClientRect();
+        light.style.left = (e.clientX - rect.left) + 'px';
+        light.style.top = (e.clientY - rect.top) + 'px';
+      };
+    }
+    for (let i = 0; i < total; i++) {
+      const el = document.createElement('div');
+      el.textContent = animals[i % animals.length];
+      el.style.cssText = `position:absolute; font-size:3.2rem; left:${10 + (i * 73) % 80}%; top:${15 + (i * 47) % 70}%; opacity:${isFlashlight ? '0.14' : '1'}; transition:0.3s; cursor:pointer;`;
+      el.onmouseenter = () => {
+        if (el.dataset.done) return;
+        el.dataset.done = '1'; el.style.opacity = '1'; el.style.transform = 'scale(1.4)';
+        found++; sfxPop(); speakNatural("Ketemu!");
+        if (found >= total) setTimeout(completeCurrentLevel, 600);
+      };
+      pf.appendChild(el);
+    }
+  }
+
+  function runClickGame(pf, lvl) {
+    let count = 0;
+    lvl.items.forEach((txt, idx) => {
+      const btn = document.createElement('div');
+      btn.className = 'game-target'; btn.textContent = txt;
+      const sz = lvl.size || 95;
+      btn.style.width = sz + 'px'; btn.style.height = sz + 'px';
+      btn.style.left = (10 + (idx * 14) % 78) + '%';
+      btn.style.top = (18 + (idx * 23) % 62) + '%';
+      btn.onclick = () => {
+        if (lvl.mode === 'click_sequence' && idx !== count) {
+          speakNatural(`Cari angka ${lvl.items[count]} dulu ya!`); return;
+        }
+        btn.remove(); count++; sfxPop(); speakNatural(txt);
+        if (count >= lvl.items.length) setTimeout(completeCurrentLevel, 500);
+      };
+      pf.appendChild(btn);
+    });
+  }
+
+  function runDoubleClickGame(pf, lvl) {
+    let count = 0;
+    lvl.items.forEach((icon, idx) => {
+      const box = document.createElement('div');
+      box.className = 'game-target'; box.style.width = '115px'; box.style.height = '115px';
+      box.style.left = (15 + idx * 18) + '%'; box.style.top = '35%'; box.textContent = icon;
+      box.ondblclick = () => {
+        if (box.dataset.opened) return;
+        box.dataset.opened = '1'; box.textContent = '🦖'; box.style.background = '#10b981';
+        count++; sfxPop(); speakNatural("Terbuka!");
+        if (count >= lvl.items.length) setTimeout(completeCurrentLevel, 600);
+      };
+      pf.appendChild(box);
+    });
+  }
+
+  function runRightClickGame(pf, lvl) {
+    let count = 0;
+    const prizes = ["🧸", "🚂", "🎨", "🎸", "🚀"];
+    lvl.items.forEach((icon, idx) => {
+      const box = document.createElement('div');
+      box.className = 'game-target'; box.style.width = '110px'; box.style.height = '110px';
+      box.style.left = (14 + idx * 17) + '%'; box.style.top = '35%'; box.textContent = icon;
+      box.oncontextmenu = (e) => {
+        e.preventDefault();
+        if (box.dataset.opened) return;
+        box.dataset.opened = '1'; box.textContent = prizes[idx % prizes.length]; box.style.background = '#8b5cf6';
+        count++; sfxPop(); speakNatural("Wah, ada kejutan!");
+        if (count >= lvl.items.length) setTimeout(completeCurrentLevel, 600);
+      };
+      pf.appendChild(box);
+    });
+  }
+
+  function runDragDropGame(pf, lvl) {
+    let matched = 0;
+    const wrap = document.createElement('div'); wrap.className = 'dnd-container';
+    const leftCol = document.createElement('div'); leftCol.className = 'dnd-col';
+    const rightCol = document.createElement('div'); rightCol.className = 'dnd-col';
+    lvl.pairs.forEach((p, idx) => {
+      const drag = document.createElement('div');
+      drag.className = 'draggable-item'; drag.textContent = p.item; drag.draggable = true;
+      drag.ondragstart = (e) => e.dataTransfer.setData('text/plain', idx);
+      leftCol.appendChild(drag);
+
+      const zone = document.createElement('div');
+      zone.className = 'drop-zone'; zone.textContent = p.target;
+      zone.ondragover = (e) => e.preventDefault();
+      zone.ondrop = (e) => {
+        e.preventDefault();
+        if (Number(e.dataTransfer.getData('text/plain')) === idx && !zone.dataset.done) {
+          zone.dataset.done = '1'; zone.classList.add('matched');
+          zone.textContent = `✅ ${p.item} → ${p.target}`; drag.style.visibility = 'hidden';
+          matched++; sfxPop(); speakNatural("Cocok sekali!");
+          if (matched >= lvl.pairs.length) setTimeout(completeCurrentLevel, 600);
+        } else { speakNatural("Coba pasangkan ke kotak yang sesuai ya!"); }
+      };
+      rightCol.appendChild(zone);
+    });
+    wrap.appendChild(leftCol); wrap.appendChild(rightCol); pf.appendChild(wrap);
+  }
+
+  function runScrollGame(pf, lvl) {
+    let progressScroll = 0;
+    const barWrap = document.createElement('div');
+    barWrap.style.cssText = 'width:70%; height:44px; background:#0f172a; border-radius:22px; border:3px solid #475569; overflow:hidden; margin-top:20px;';
+    const bar = document.createElement('div');
+    bar.style.cssText = 'width:0%; height:100%; background:linear-gradient(90deg, #3b82f6, #10b981); transition:width 0.1s;';
+    barWrap.appendChild(bar);
+    const icon = document.createElement('div'); icon.style.fontSize = '5rem'; icon.textContent = '🤿';
+    const label = document.createElement('div'); label.style.cssText = 'font-size:1.4rem; font-weight:800; margin-top:12px;';
+    label.textContent = 'Putar roda tengah mouse (Scroll): 0%';
+    pf.appendChild(icon); pf.appendChild(barWrap); pf.appendChild(label);
+    pf.onwheel = (e) => {
+      e.preventDefault(); sfxKey();
+      progressScroll = Math.min(100, progressScroll + 8);
+      bar.style.width = progressScroll + '%';
+      label.textContent = `Putar roda tengah mouse (Scroll): ${progressScroll}%`;
+      if (progressScroll >= 100) {
+        pf.onwheel = null; speakNatural("Hebat! Kamu berhasil memutar roda scroll!");
+        setTimeout(completeCurrentLevel, 600);
+      }
+    };
+  }
+
+  function renderVisualKeyboard(highlightKey) {
+    const rows = [
+      ["1","2","3","4","5","6","7","8","9","0"],
+      ["Q","W","E","R","T","Y","U","I","O","P"],
+      ["A","S","D","F","G","H","J","K","L","ENTER"],
+      ["Z","X","C","V","B","N","M","SPACE"]
+    ];
+    const kb = document.createElement('div'); kb.className = 'v-keyboard';
+    rows.forEach(r => {
+      const rowDiv = document.createElement('div'); rowDiv.className = 'vk-row';
+      r.forEach(k => {
+        const keyDiv = document.createElement('div');
+        keyDiv.className = 'vk-key' + (k === highlightKey ? ' highlight' : '');
+        keyDiv.textContent = k === 'SPACE' ? 'SPASI (SPACE)' : k;
+        if (k === 'SPACE') keyDiv.style.minWidth = '220px';
+        rowDiv.appendChild(keyDiv);
+      });
+      kb.appendChild(rowDiv);
+    });
+    return kb;
+  }
+
+  function runTypeSingleGame(pf, lvl) {
+    let idx = 0;
+    function draw() {
+      pf.innerHTML = '';
+      const target = lvl.keys[idx];
+      const promptBox = document.createElement('div');
+      promptBox.style.cssText = 'font-size:3.5rem; font-weight:900; background:#2563eb; padding:20px 44px; border-radius:20px; border:4px solid white;';
+      promptBox.textContent = target === 'SPACE' ? 'TEKAN SPASI' : target;
+      pf.appendChild(promptBox); pf.appendChild(renderVisualKeyboard(target));
+    }
+    draw();
+    activeKeyHandler = (e) => {
+      if (e.repeat) return;
+      const target = lvl.keys[idx];
+      const pressed = e.code === 'Space' ? 'SPACE' : e.key.toUpperCase();
+      if (pressed === target) {
+        sfxKey(); speakNatural(target === 'SPACE' ? 'Spasi' : target);
+        idx++;
+        if (idx >= lvl.keys.length) setTimeout(completeCurrentLevel, 500);
+        else draw();
+      }
+    };
+    window.addEventListener('keydown', activeKeyHandler);
+  }
+
+  function runTypeWordGame(pf, lvl) {
+    let wIdx = 0, cIdx = 0;
+    function draw() {
+      pf.innerHTML = '';
+      const word = lvl.words[wIdx];
+      const wordBox = document.createElement('div'); wordBox.className = 'word-box';
+      for (let i = 0; i < word.length; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'char-slot' + (i < cIdx ? ' done' : (i === cIdx ? ' active' : ''));
+        slot.textContent = word[i] === ' ' ? '␣' : word[i];
+        wordBox.appendChild(slot);
+      }
+      pf.appendChild(wordBox);
+      pf.appendChild(renderVisualKeyboard(word[cIdx] === ' ' ? 'SPACE' : word[cIdx]));
+    }
+    draw();
+    activeKeyHandler = (e) => {
+      if (e.repeat) return;
+      const word = lvl.words[wIdx];
+      if (e.key.toUpperCase() === word[cIdx]) {
+        sfxKey(); cIdx++;
+        if (cIdx >= word.length) {
+          speakNatural(word.toLowerCase());
+          wIdx++; cIdx = 0;
+          if (wIdx >= lvl.words.length) { setTimeout(completeCurrentLevel, 700); return; }
+        }
+        draw();
+      }
+    };
+    window.addEventListener('keydown', activeKeyHandler);
+  }
+
+  function runArrowMazeGame(pf, lvl) {
+    let rx = 50, ry = 50, collected = 0;
+    const total = lvl.steps;
+    const robot = document.createElement('div'); robot.style.cssText = 'position:absolute; font-size:3rem; transition:0.1s;'; robot.textContent = '🤖';
+    const star = document.createElement('div'); star.style.cssText = 'position:absolute; font-size:3rem;'; star.textContent = '⭐';
+    let sx = 70, sy = 40;
+    function updatePos() {
+      robot.style.left = rx + '%'; robot.style.top = ry + '%';
+      star.style.left = sx + '%'; star.style.top = sy + '%';
+      if (Math.abs(rx - sx) < 8 && Math.abs(ry - sy) < 10) {
+        collected++; sfxPop(); speakNatural(`Dapat bintang ke ${collected}!`);
+        if (collected >= total) { setTimeout(completeCurrentLevel, 500); return; }
+        sx = 15 + Math.floor(Math.random() * 70); sy = 15 + Math.floor(Math.random() * 65);
+        updatePos();
+      }
+    }
+    pf.appendChild(star); pf.appendChild(robot); updatePos();
+    activeKeyHandler = (e) => {
+      if (e.key === 'ArrowRight') rx = Math.min(88, rx + 5);
+      if (e.key === 'ArrowLeft') rx = Math.max(4, rx - 5);
+      if (e.key === 'ArrowDown') ry = Math.min(80, ry + 6);
+      if (e.key === 'ArrowUp') ry = Math.max(6, ry - 6);
+      sfxKey(); updatePos();
+    };
+    window.addEventListener('keydown', activeKeyHandler);
+  }
+
+  function runClickAndTypeGame(pf, lvl) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex; flex-direction:column; gap:18px; width:80%; max-width:520px;';
+    let doneCount = 0;
+    lvl.prompts.forEach(p => {
+      const row = document.createElement('div');
+      row.innerHTML = `<div style="font-weight:700; margin-bottom:6px; font-size:1.1rem;">${p.label}</div>`;
+      const inp = document.createElement('input');
+      inp.type = 'text'; inp.placeholder = 'Klik di sini lalu ketik...';
+      inp.style.cssText = 'width:100%; padding:14px; font-size:1.4rem; border-radius:12px; border:3px solid #3b82f6; font-weight:800; text-transform:uppercase;';
+      inp.oninput = () => {
+        sfxKey();
+        if (inp.value.trim().toUpperCase() === p.answer && !inp.dataset.ok) {
+          inp.dataset.ok = '1'; inp.disabled = true; inp.style.background = '#065f46'; inp.style.color = 'white'; inp.style.borderColor = '#10b981';
+          doneCount++; sfxPop(); speakNatural("Benar sekali!");
+          if (doneCount >= lvl.prompts.length) setTimeout(completeCurrentLevel, 600);
+        }
+      };
+      row.appendChild(inp); wrap.appendChild(row);
+    });
+    pf.appendChild(wrap);
+  }
+
+  function runWindowSimGame(pf, lvl) {
+    const win = document.createElement('div');
+    win.style.cssText = 'width:460px; height:240px; background:#f8fafc; color:#0f172a; border-radius:16px; overflow:hidden; box-shadow:0 15px 35px rgba(0,0,0,0.5); display:flex; flex-direction:column;';
+    win.innerHTML = `
+      <div style="background:#cbd5e1; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; font-weight:800;">
+        <span>📁 Simulasi Jendela Komputer</span>
+        <div style="display:flex; gap:8px;">
+          <button id="sim-min" style="width:36px; height:36px; font-weight:900; cursor:pointer;">—</button>
+          <button id="sim-max" style="width:36px; height:36px; font-weight:900; cursor:pointer;">□</button>
+          <button id="sim-cls" style="width:36px; height:36px; font-weight:900; background:#ef4444; color:white; border:none; cursor:pointer;">✕</button>
+        </div>
+      </div>
+      <div style="flex:1; display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:700; padding:20px; text-align:center;">
+        Perhatikan 3 tombol di pojok kanan atas jendela ini!
+      </div>
+    `;
+    pf.appendChild(win);
+    document.getElementById('sim-min').onclick = () => { if (lvl.task === 'minimize') { sfxPop(); win.style.transform = 'scale(0.3)'; setTimeout(completeCurrentLevel, 500); } };
+    document.getElementById('sim-max').onclick = () => { if (lvl.task === 'maximize') { sfxPop(); win.style.width = '90%'; win.style.height = '85%'; setTimeout(completeCurrentLevel, 500); } };
+    document.getElementById('sim-cls').onclick = () => { if (lvl.task === 'close') { sfxPop(); win.remove(); setTimeout(completeCurrentLevel, 400); } };
+  }
+
+  renderMap();
+</script>
+</body>
+</html>
